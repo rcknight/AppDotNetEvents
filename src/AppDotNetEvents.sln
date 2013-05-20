@@ -10,16 +10,36 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{5AA9CF
 		.nuget\NuGet.targets = .nuget\NuGet.targets
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PostCopier", "PostCopier\PostCopier.csproj", "{D05F5178-C186-43A2-A345-383F7EB1FFBB}"
+EndProject
+Project("{1F9597DD-BEAF-4316-BF99-CBA44153BBAD}") = "Projections", "Projections\Projections.espproj", "{F7809A27-A3B8-43FD-A2BE-148C88DCA4AA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
+		Debug|x86 = Debug|x86
 		Release|Any CPU = Release|Any CPU
+		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{4FBC6CDC-8637-4C3A-96BF-0224695B926D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4FBC6CDC-8637-4C3A-96BF-0224695B926D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4FBC6CDC-8637-4C3A-96BF-0224695B926D}.Debug|x86.ActiveCfg = Debug|Any CPU
 		{4FBC6CDC-8637-4C3A-96BF-0224695B926D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4FBC6CDC-8637-4C3A-96BF-0224695B926D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4FBC6CDC-8637-4C3A-96BF-0224695B926D}.Release|x86.ActiveCfg = Release|Any CPU
+		{D05F5178-C186-43A2-A345-383F7EB1FFBB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D05F5178-C186-43A2-A345-383F7EB1FFBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D05F5178-C186-43A2-A345-383F7EB1FFBB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D05F5178-C186-43A2-A345-383F7EB1FFBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D05F5178-C186-43A2-A345-383F7EB1FFBB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D05F5178-C186-43A2-A345-383F7EB1FFBB}.Release|x86.ActiveCfg = Release|Any CPU
+		{F7809A27-A3B8-43FD-A2BE-148C88DCA4AA}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{F7809A27-A3B8-43FD-A2BE-148C88DCA4AA}.Debug|x86.ActiveCfg = Debug|x86
+		{F7809A27-A3B8-43FD-A2BE-148C88DCA4AA}.Debug|x86.Build.0 = Debug|x86
+		{F7809A27-A3B8-43FD-A2BE-148C88DCA4AA}.Release|Any CPU.ActiveCfg = Release|x86
+		{F7809A27-A3B8-43FD-A2BE-148C88DCA4AA}.Release|x86.ActiveCfg = Release|x86
+		{F7809A27-A3B8-43FD-A2BE-148C88DCA4AA}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

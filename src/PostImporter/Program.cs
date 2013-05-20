@@ -53,7 +53,7 @@ namespace PostImporter
     public class PostImporter
     {
         private const string APPDOTNET_STREAM_URL = "https://alpha-api.app.net/stream/0/posts/stream/global";
-        private const int CONCURRENT_REQUESTS = 7;
+        private const int CONCURRENT_REQUESTS = 3;
         private const string EVENT_STORE_STREAM_NAME = "AppDotNetPosts";
 
         private MemoryMappedFileCheckpoint _checkpoint;
@@ -64,6 +64,7 @@ namespace PostImporter
         public PostImporter()
         {
             _checkpoint = new MemoryMappedFileCheckpoint("postsLoaded");
+
             _logger = new EventStore.ClientAPI.Common.Log.ConsoleLogger();
 
             var _connectionSettings =
@@ -76,7 +77,7 @@ namespace PostImporter
                                   .OnReconnecting(_ => _logger.Info("Event Store Reconnecting"))
                                   .OnErrorOccurred((c, e) => _logger.Error(e, "Event Store Error :("));
 
-            _connection = EventStoreConnection.Create(_connectionSettings, new IPEndPoint(IPAddress.Loopback, 1113));
+            _connection = EventStoreConnection.Create(_connectionSettings, new IPEndPoint(IPAddress.Parse("10.3.1.103"), 1113));
             _connection.Connect();
 
 
@@ -140,6 +141,8 @@ namespace PostImporter
 
                     //write events
 
+                    //filter out empty responses
+
                     foreach (var resp in parsedResponses)
                     {
                         //if (resp.meta.more == false)
@@ -150,14 +153,18 @@ namespace PostImporter
                         //}
                         var events = resp.data.Select(post => BuildEventData(post.SerializeToString())).Reverse();
 
-                        _connection.AppendToStream(EVENT_STORE_STREAM_NAME,ExpectedVersion.Any,events);
+                        if (events.Count() != 0)
+                        {
+                            _connection.AppendToStream(EVENT_STORE_STREAM_NAME, ExpectedVersion.Any, events);
+                            Console.WriteLine(resp.meta.max_id);
 
-                        Console.WriteLine(resp.meta.max_id);
+                            _checkpoint.Write(resp.meta.max_id);
+                            _checkpoint.Flush();
+                            
+                        }
                     }
 
-                    //update checkpoint
-                    _checkpoint.Write(parsedResponses.Last().meta.max_id);
-                    _checkpoint.Flush();
+
 
                     //run again based on rate limit headers
 
@@ -181,7 +188,7 @@ namespace PostImporter
 
                     if (remaining != 0 && remaining >= CONCURRENT_REQUESTS)
                     {
-                        //retryIn = (resetSeconds/ (remaining / CONCURRENT_REQUESTS))*1000;
+                        retryIn = (resetSeconds/ (remaining / CONCURRENT_REQUESTS))*1000;
                     }
                     else
                     {
@@ -190,7 +197,7 @@ namespace PostImporter
                             retryIn = (resetSeconds + 1)*1000;
                     }
 
-                    //retryIn = retryIn - sw.ElapsedMilliseconds;
+                    retryIn = retryIn - sw.ElapsedMilliseconds;
 
                     if (retryIn <= 0)
                         retryIn = 1;
