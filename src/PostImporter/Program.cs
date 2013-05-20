@@ -77,7 +77,7 @@ namespace PostImporter
                                   .OnReconnecting(_ => _logger.Info("Event Store Reconnecting"))
                                   .OnErrorOccurred((c, e) => _logger.Error(e, "Event Store Error :("));
 
-            _connection = EventStoreConnection.Create(_connectionSettings, new IPEndPoint(IPAddress.Parse("10.3.1.103"), 1113));
+            _connection = EventStoreConnection.Create(_connectionSettings, new IPEndPoint(IPAddress.Parse("192.81.222.61"), 1113));
             _connection.Connect();
 
 
