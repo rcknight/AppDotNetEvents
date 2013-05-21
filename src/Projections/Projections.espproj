@@ -34,7 +34,13 @@
     <Content Include="HourOfDayAverages.js">
       <SubType>Content</SubType>
     </Content>
-    <Content Include="LinkScores.js">
+    <Content Include="LinkIndex.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="LinkScoresHN.js">
+      <SubType>Content</SubType>
+    </Content>
+    <Content Include="LinkScoresReddit.js">
       <SubType>Content</SubType>
     </Content>
     <Content Include="MonthlyPosts.js">

@@ -4,7 +4,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Security;
 using System.Runtime.Serialization;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,7 +21,7 @@ namespace PostImporter
     {
         static void Main(string[] args)
         {
-            HostFactory.Run(x =>                                 //1
+            /*HostFactory.Run(x =>                                 //1
             {
                 x.Service<PostImporter>(s =>                        //2
                 {
@@ -31,7 +33,10 @@ namespace PostImporter
                 x.SetDescription("Sample Topshelf Host");        //7
                 x.SetDisplayName("Stuff");                       //8
                 x.SetServiceName("stuff");                       //9
-            });    
+            });*/
+            new PostImporter().Start();
+            new ManualResetEvent(false).WaitOne();
+            Console.ReadLine();
         }
     }
 
@@ -53,17 +58,24 @@ namespace PostImporter
     public class PostImporter
     {
         private const string APPDOTNET_STREAM_URL = "https://alpha-api.app.net/stream/0/posts/stream/global";
-        private const int CONCURRENT_REQUESTS = 3;
+        private const int CONCURRENT_REQUESTS = 7;
         private const string EVENT_STORE_STREAM_NAME = "AppDotNetPosts";
 
-        private MemoryMappedFileCheckpoint _checkpoint;
+        private FileCheckpoint _checkpoint;
         private readonly ILogger _logger;
         private IEventStoreConnection _connection;
         private bool _shuttingDown;
 
+        //quick fix for https issue on mono
+        public static bool Validator(object sender, X509Certificate certificate, X509Chain chain,
+                                      SslPolicyErrors sslPolicyErrors)
+        {
+            return true;
+        }
+
         public PostImporter()
         {
-            _checkpoint = new MemoryMappedFileCheckpoint("postsLoaded");
+            _checkpoint = new FileCheckpoint("postsLoaded");
 
             _logger = new EventStore.ClientAPI.Common.Log.ConsoleLogger();
 
@@ -80,11 +92,13 @@ namespace PostImporter
             _connection = EventStoreConnection.Create(_connectionSettings, new IPEndPoint(IPAddress.Parse("192.81.222.61"), 1113));
             _connection.Connect();
 
-
-            System.Net.ServicePointManager.DefaultConnectionLimit = 1000;
+            ThreadPool.SetMaxThreads(20, 20);
+            ThreadPool.SetMinThreads(20, 20);
+            //ServicePointManager.DefaultConnectionLimit = 1000;
             ServicePointManager.Expect100Continue = false;
-            ServicePointManager.EnableDnsRoundRobin = false;
-            ServicePointManager.DnsRefreshTimeout = Int32.MaxValue;
+            ServicePointManager.ServerCertificateValidationCallback = Validator;
+            //ServicePointManager.EnableDnsRoundRobin = false;
+            //ServicePointManager.DnsRefreshTimeout = Int32.MaxValue;
         }
 
         public void LoadPosts()
@@ -107,7 +121,7 @@ namespace PostImporter
                     for (int i = 0; i < CONCURRENT_REQUESTS; i++)
                     {
                         var request = BuildRequest(requestPosition);
-                        var task = request.GetResponseAsync();
+                        var task = Task<WebResponse>.Factory.FromAsync(request.BeginGetResponse, request.EndGetResponse, null);
                         taskList.Add(task);
                         requestPosition += 200;
                     }
@@ -188,7 +202,7 @@ namespace PostImporter
 
                     if (remaining != 0 && remaining >= CONCURRENT_REQUESTS)
                     {
-                        retryIn = (resetSeconds/ (remaining / CONCURRENT_REQUESTS))*1000;
+                        //retryIn = (resetSeconds/ (remaining / CONCURRENT_REQUESTS))*1000;
                     }
                     else
                     {
@@ -202,6 +216,7 @@ namespace PostImporter
                     if (retryIn <= 0)
                         retryIn = 1;
 
+                    
                     _logger.Info("next load in {0:0.#} milliseconds", retryIn);
                     pauseMs = (int) retryIn;
 
@@ -223,7 +238,7 @@ namespace PostImporter
         {
             var url = APPDOTNET_STREAM_URL + "?since_id=" + startingPost + "&before_id=" + (startingPost + 201) + "&count=200";
             //load posts
-            HttpWebRequest request = WebRequest.CreateHttp(url);
+            var request = (HttpWebRequest)WebRequest.Create(url);
             //request.Headers.Add("Accept-Encoding", "gzip,deflate");
             request.Method = "GET";
             request.Timeout = 5000;
