@@ -35,9 +35,10 @@ namespace PostCopier
             _destConnection = EventStoreConnection.Create(_connectionSettings, new IPEndPoint(IPAddress.Loopback, 1114));
             _destConnection.Connect();
 
+            
+
             string sourceStream = "PostsToKeep";
             string destStream = "AppDotNetPosts";
-
 
             int lastPosition = 0;
 
